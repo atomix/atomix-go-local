@@ -23,25 +23,25 @@ import (
 	"time"
 )
 
-// NewLocalNode returns a new Atomix Node with a local protocol implementation
-func NewLocalNode(lis net.Listener) *atomix.Node {
-	return atomix.NewNode("local", &controller.PartitionConfig{}, NewLocalProtocol(), atomix.WithLocal(lis))
+// NewNode returns a new Atomix Node with a local protocol implementation
+func NewNode(lis net.Listener) *atomix.Node {
+	return atomix.NewNode("local", &controller.PartitionConfig{}, NewProtocol(), atomix.WithLocal(lis))
 }
 
-// NewLocalProtocol returns an Atomix LocalProtocol instance
-func NewLocalProtocol() atomix.Protocol {
-	return &LocalProtocol{}
+// NewProtocol returns an Atomix Protocol instance
+func NewProtocol() atomix.Protocol {
+	return &Protocol{}
 }
 
-// LocalProtocol implements the Atomix protocol in process
-type LocalProtocol struct {
+// Protocol implements the Atomix protocol in process
+type Protocol struct {
 	atomix.Protocol
 	stateMachine service.StateMachine
 	client       *localClient
 	context      *localContext
 }
 
-func (p *LocalProtocol) Start(cluster atomix.Cluster, registry *service.ServiceRegistry) error {
+func (p *Protocol) Start(cluster atomix.Cluster, registry *service.ServiceRegistry) error {
 	p.context = &localContext{}
 	p.stateMachine = service.NewPrimitiveStateMachine(registry, p.context)
 	p.client = &localClient{
@@ -53,11 +53,11 @@ func (p *LocalProtocol) Start(cluster atomix.Cluster, registry *service.ServiceR
 	return nil
 }
 
-func (p *LocalProtocol) Client() service.Client {
+func (p *Protocol) Client() service.Client {
 	return p.client
 }
 
-func (p *LocalProtocol) Stop() error {
+func (p *Protocol) Stop() error {
 	p.client.stop()
 	return nil
 }

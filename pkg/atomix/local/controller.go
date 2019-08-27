@@ -109,10 +109,8 @@ func (p *partition) Start() error {
 			}
 		}
 
-		node := NewLocalNode(lis)
-		if err := node.Start(); err != nil {
-			return err
-		}
+		node := NewNode(lis)
+		go node.Start()
 
 		endpoint.Host = "localhost"
 		endpoint.Port = int32(port)
@@ -143,7 +141,7 @@ func (c *ControllerServer) CreatePartitionGroup(ctx context.Context, request *co
 	_, ok := c.controller.groups[getNamespacedName(request.ID)]
 	if !ok {
 		partitions := make([]*partition, request.Spec.Partitions)
-		for i := 1; i <= int(request.Spec.Partitions); i++ {
+		for i := 0; i < int(request.Spec.Partitions); i++ {
 			endpoints := make([]*controller.PartitionEndpoint, request.Spec.PartitionSize)
 			for i := 0; i < int(request.Spec.PartitionSize); i++ {
 				endpoints[i] = &controller.PartitionEndpoint{}
@@ -151,7 +149,7 @@ func (c *ControllerServer) CreatePartitionGroup(ctx context.Context, request *co
 
 			partitions[i] = &partition{
 				Info: &controller.Partition{
-					PartitionID: int32(i),
+					PartitionID: int32(i) + 1,
 					Endpoints:   endpoints,
 				},
 				nodes: make([]*atomix.Node, 0),
@@ -160,10 +158,13 @@ func (c *ControllerServer) CreatePartitionGroup(ctx context.Context, request *co
 
 		group := &partitionGroup{
 			ID:         request.ID,
+			Spec:       request.Spec,
 			partitions: partitions,
 		}
 		c.controller.groups[getNamespacedName(request.ID)] = group
-		group.Start()
+		if err := group.Start(); err != nil {
+			return nil, err
+		}
 	}
 	return &controller.CreatePartitionGroupResponse{}, nil
 }
