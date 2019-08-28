@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/atomix/atomix-api/proto/atomix/controller"
 	"github.com/atomix/atomix-go-node/pkg/atomix"
+	"github.com/atomix/atomix-go-node/pkg/atomix/cluster"
 	"github.com/atomix/atomix-go-node/pkg/atomix/service"
 	"net"
 	"time"
@@ -29,19 +30,19 @@ func NewNode(lis net.Listener) *atomix.Node {
 }
 
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol() atomix.Protocol {
+func NewProtocol() service.Protocol {
 	return &Protocol{}
 }
 
 // Protocol implements the Atomix protocol in process
 type Protocol struct {
-	atomix.Protocol
+	service.Protocol
 	stateMachine service.StateMachine
 	client       *localClient
 	context      *localContext
 }
 
-func (p *Protocol) Start(cluster atomix.Cluster, registry *service.ServiceRegistry) error {
+func (p *Protocol) Start(cluster cluster.Cluster, registry *service.Registry) error {
 	p.context = &localContext{}
 	p.stateMachine = service.NewPrimitiveStateMachine(registry, p.context)
 	p.client = &localClient{
