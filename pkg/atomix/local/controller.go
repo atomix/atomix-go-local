@@ -19,25 +19,28 @@ import (
 	"fmt"
 	"github.com/atomix/atomix-api/proto/atomix/controller"
 	"github.com/atomix/atomix-go-node/pkg/atomix"
+	"github.com/atomix/atomix-go-node/pkg/atomix/service"
 	"google.golang.org/grpc"
 	"net"
 	"sync"
 )
 
 // NewController returns a new local controller
-func NewController(port int) *Controller {
+func NewController(port int, registry *service.Registry) *Controller {
 	return &Controller{
-		port:   port,
-		groups: make(map[string]*partitionGroup),
+		port:     port,
+		registry: registry,
+		groups:   make(map[string]*partitionGroup),
 	}
 }
 
 // Controller is a local controller instance
 type Controller struct {
-	port   int
-	server *grpc.Server
-	groups map[string]*partitionGroup
-	mu     sync.RWMutex
+	port     int
+	registry *service.Registry
+	server   *grpc.Server
+	groups   map[string]*partitionGroup
+	mu       sync.RWMutex
 }
 
 // Start starts the local controller
@@ -90,8 +93,9 @@ func (g *partitionGroup) Stop() {
 
 // partition is a single local partition
 type partition struct {
-	Info  *controller.Partition
-	nodes []*atomix.Node
+	controller *Controller
+	Info       *controller.Partition
+	nodes      []*atomix.Node
 }
 
 // Start starts the partition
@@ -109,7 +113,7 @@ func (p *partition) Start() error {
 			}
 		}
 
-		node := NewNode(lis)
+		node := NewNode(lis, p.controller.registry)
 		go node.Start()
 
 		endpoint.Host = "localhost"
@@ -148,6 +152,7 @@ func (c *ControllerServer) CreatePartitionGroup(ctx context.Context, request *co
 			}
 
 			partitions[i] = &partition{
+				controller: c.controller,
 				Info: &controller.Partition{
 					PartitionID: int32(i) + 1,
 					Endpoints:   endpoints,

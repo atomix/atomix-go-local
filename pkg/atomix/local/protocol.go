@@ -25,8 +25,8 @@ import (
 )
 
 // NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener) *atomix.Node {
-	return atomix.NewNode("local", &controller.PartitionConfig{}, NewProtocol(), atomix.WithLocal(lis))
+func NewNode(lis net.Listener, registry *service.Registry) *atomix.Node {
+	return atomix.NewNode("local", &controller.PartitionConfig{}, NewProtocol(), registry, atomix.WithLocal(lis))
 }
 
 // NewProtocol returns an Atomix Protocol instance
