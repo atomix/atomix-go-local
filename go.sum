@@ -36,6 +36,8 @@ github.com/atomix/atomix-go-node v0.0.0-20190828183436-fc30340cd8db h1:llFHqlMRZ
 github.com/atomix/atomix-go-node v0.0.0-20190828183436-fc30340cd8db/go.mod h1:dyh8Bb50qKfMlpqDE6X+dQ1tZ399WKEABa3ntDYImnA=
 github.com/atomix/atomix-go-node v0.0.0-20190830183721-649263a17223 h1:39qL49ggeUBP8wI1RHiyk7El8izK8B6VCGSugbKv5PA=
 github.com/atomix/atomix-go-node v0.0.0-20190830183721-649263a17223/go.mod h1:KJxB/MAgndAbyCOqTV2hatw7lExiZZs7QCOr45IfC9U=
+github.com/atomix/atomix-go-node v0.0.0-20190917012211-d4866b018ab6 h1:L56LbsJlINFqlAP1ixOMPiWZaALkqCeKttfZPlOJD2g=
+github.com/atomix/atomix-go-node v0.0.0-20190917012211-d4866b018ab6/go.mod h1:fQ/oMxUHpVMugRSWfBhS2z1l8TXyXOoNlLdq43eVAOU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
