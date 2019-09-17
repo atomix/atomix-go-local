@@ -19,32 +19,33 @@ import (
 	"github.com/atomix/atomix-api/proto/atomix/controller"
 	"github.com/atomix/atomix-go-node/pkg/atomix"
 	"github.com/atomix/atomix-go-node/pkg/atomix/cluster"
+	"github.com/atomix/atomix-go-node/pkg/atomix/node"
 	"github.com/atomix/atomix-go-node/pkg/atomix/service"
 	"net"
 	"time"
 )
 
 // NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener, registry *service.Registry) *atomix.Node {
+func NewNode(lis net.Listener, registry *node.Registry) *atomix.Node {
 	return atomix.NewNode("local", &controller.PartitionConfig{}, NewProtocol(), registry, atomix.WithLocal(lis))
 }
 
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol() service.Protocol {
+func NewProtocol() node.Protocol {
 	return &Protocol{}
 }
 
 // Protocol implements the Atomix protocol in process
 type Protocol struct {
-	service.Protocol
-	stateMachine service.StateMachine
+	node.Protocol
+	stateMachine node.StateMachine
 	client       *localClient
 	context      *localContext
 }
 
-func (p *Protocol) Start(cluster cluster.Cluster, registry *service.Registry) error {
+func (p *Protocol) Start(cluster cluster.Cluster, registry *node.Registry) error {
 	p.context = &localContext{}
-	p.stateMachine = service.NewPrimitiveStateMachine(registry, p.context)
+	p.stateMachine = node.NewPrimitiveStateMachine(registry, p.context)
 	p.client = &localClient{
 		stateMachine: p.stateMachine,
 		context:      p.context,
@@ -54,7 +55,7 @@ func (p *Protocol) Start(cluster cluster.Cluster, registry *service.Registry) er
 	return nil
 }
 
-func (p *Protocol) Client() service.Client {
+func (p *Protocol) Client() node.Client {
 	return p.client
 }
 
@@ -64,10 +65,13 @@ func (p *Protocol) Stop() error {
 }
 
 type localContext struct {
-	service.Context
 	index     uint64
 	timestamp time.Time
 	operation service.OperationType
+}
+
+func (c *localContext) Node() string {
+	return "local"
 }
 
 func (c *localContext) Index() uint64 {
@@ -83,7 +87,7 @@ func (c *localContext) OperationType() service.OperationType {
 }
 
 type localClient struct {
-	stateMachine service.StateMachine
+	stateMachine node.StateMachine
 	context      *localContext
 	ch           chan testRequest
 }
@@ -91,7 +95,7 @@ type localClient struct {
 type testRequest struct {
 	op    service.OperationType
 	input []byte
-	ch    chan<- service.Output
+	ch    chan<- node.Output
 }
 
 func (c *localClient) start() {
@@ -116,7 +120,7 @@ func (c *localClient) processRequests() {
 	}
 }
 
-func (c *localClient) Write(ctx context.Context, input []byte, ch chan<- service.Output) error {
+func (c *localClient) Write(ctx context.Context, input []byte, ch chan<- node.Output) error {
 	c.ch <- testRequest{
 		op:    service.OpTypeCommand,
 		input: input,
@@ -125,7 +129,7 @@ func (c *localClient) Write(ctx context.Context, input []byte, ch chan<- service
 	return nil
 }
 
-func (c *localClient) Read(ctx context.Context, input []byte, ch chan<- service.Output) error {
+func (c *localClient) Read(ctx context.Context, input []byte, ch chan<- node.Output) error {
 	c.ch <- testRequest{
 		op:    service.OpTypeQuery,
 		input: input,

@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"github.com/atomix/atomix-api/proto/atomix/controller"
 	"github.com/atomix/atomix-go-node/pkg/atomix"
-	"github.com/atomix/atomix-go-node/pkg/atomix/service"
+	"github.com/atomix/atomix-go-node/pkg/atomix/node"
 	"google.golang.org/grpc"
 	"net"
 	"sync"
 )
 
 // NewController returns a new local controller
-func NewController(port int, registry *service.Registry) *Controller {
+func NewController(port int, registry *node.Registry) *Controller {
 	return &Controller{
 		port:     port,
 		registry: registry,
@@ -37,7 +37,7 @@ func NewController(port int, registry *service.Registry) *Controller {
 // Controller is a local controller instance
 type Controller struct {
 	port     int
-	registry *service.Registry
+	registry *node.Registry
 	server   *grpc.Server
 	groups   map[string]*partitionGroup
 	mu       sync.RWMutex
