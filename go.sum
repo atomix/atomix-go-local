@@ -57,6 +57,8 @@ github.com/atomix/atomix-go-node v0.0.0-20191005231918-03788734be2d h1:HIWB/8alD
 github.com/atomix/atomix-go-node v0.0.0-20191005231918-03788734be2d/go.mod h1:eQpS42TVM24rJW+9lJRl1EJIi3YGPjTv1xsNYxuMrf0=
 github.com/atomix/atomix-go-node v0.0.0-20191005232301-0cf6966c272d h1:FVmq65I0acNvr8G6nh57Z4YCOB0sdUHPNduPZSqbPTM=
 github.com/atomix/atomix-go-node v0.0.0-20191005232301-0cf6966c272d/go.mod h1:eQpS42TVM24rJW+9lJRl1EJIi3YGPjTv1xsNYxuMrf0=
+github.com/atomix/atomix-go-node v0.0.0-20191005232742-ebda59622853 h1:gKRVpzS3fKmQTRXFM21Y9cl+Jzz4oRv0ZJ5VLp3n2ps=
+github.com/atomix/atomix-go-node v0.0.0-20191005232742-ebda59622853/go.mod h1:eQpS42TVM24rJW+9lJRl1EJIi3YGPjTv1xsNYxuMrf0=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
