@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/atomix/atomix-api v0.0.0-20191005223910-aa620357faa0
-	github.com/atomix/atomix-go-node v0.0.0-20191005224900-3dcae25c956f
+	github.com/atomix/atomix-go-node v0.0.0-20191005231918-03788734be2d
 	github.com/golang/protobuf v1.3.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
