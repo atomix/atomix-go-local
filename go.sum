@@ -80,6 +80,8 @@ github.com/atomix/atomix-go-node v0.0.0-20191015235149-a27e7ec80c20 h1:DlQ5bk4Vs
 github.com/atomix/atomix-go-node v0.0.0-20191015235149-a27e7ec80c20/go.mod h1:RYBKVIL64s0IJXL9HtoF3Wgc6KRXzdaa2KqCvPEuwhI=
 github.com/atomix/atomix-go-node v0.0.0-20191017201713-c8f48f52e1cc h1:CYWj3EwFs++T9wyN4IRsd+Qikr+XqNJ9wAV4+24QUf8=
 github.com/atomix/atomix-go-node v0.0.0-20191017201713-c8f48f52e1cc/go.mod h1:SmM+sWPwscnx6AIqGbu9Y2EqCGdUlyHTnrJa/A3XqWA=
+github.com/atomix/atomix-go-node v0.0.0-20191018192345-6fbb86e5f5ef h1:Vvwg2Q7rodpu/nz+RkbtEE/3HfI03cG3I5BNyQ5BQs4=
+github.com/atomix/atomix-go-node v0.0.0-20191018192345-6fbb86e5f5ef/go.mod h1:SmM+sWPwscnx6AIqGbu9Y2EqCGdUlyHTnrJa/A3XqWA=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
