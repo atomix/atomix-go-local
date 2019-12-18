@@ -21,6 +21,7 @@ import (
 	"github.com/atomix/atomix-go-node/pkg/atomix/cluster"
 	"github.com/atomix/atomix-go-node/pkg/atomix/node"
 	"github.com/atomix/atomix-go-node/pkg/atomix/service"
+	"github.com/atomix/atomix-go-node/pkg/atomix/stream"
 	"net"
 	"time"
 )
@@ -86,16 +87,28 @@ func (c *localContext) OperationType() service.OperationType {
 	return c.operation
 }
 
+type testRequest struct {
+	op     service.OperationType
+	input  []byte
+	stream stream.Stream
+}
+
 type localClient struct {
 	stateMachine node.StateMachine
 	context      *localContext
 	ch           chan testRequest
 }
 
-type testRequest struct {
-	op    service.OperationType
-	input []byte
-	ch    chan<- node.Output
+func (c *localClient) MustLeader() bool {
+	return false
+}
+
+func (c *localClient) IsLeader() bool {
+	return false
+}
+
+func (c *localClient) Leader() string {
+	return ""
 }
 
 func (c *localClient) start() {
@@ -112,28 +125,28 @@ func (c *localClient) processRequests() {
 			c.context.index++
 			c.context.timestamp = time.Now()
 			c.context.operation = service.OpTypeCommand
-			c.stateMachine.Command(request.input, request.ch)
+			c.stateMachine.Command(request.input, request.stream)
 		} else {
 			c.context.operation = service.OpTypeQuery
-			c.stateMachine.Query(request.input, request.ch)
+			c.stateMachine.Query(request.input, request.stream)
 		}
 	}
 }
 
-func (c *localClient) Write(ctx context.Context, input []byte, ch chan<- node.Output) error {
+func (c *localClient) Write(ctx context.Context, input []byte, stream stream.Stream) error {
 	c.ch <- testRequest{
-		op:    service.OpTypeCommand,
-		input: input,
-		ch:    ch,
+		op:     service.OpTypeCommand,
+		input:  input,
+		stream: stream,
 	}
 	return nil
 }
 
-func (c *localClient) Read(ctx context.Context, input []byte, ch chan<- node.Output) error {
+func (c *localClient) Read(ctx context.Context, input []byte, stream stream.Stream) error {
 	c.ch <- testRequest{
-		op:    service.OpTypeQuery,
-		input: input,
-		ch:    ch,
+		op:     service.OpTypeQuery,
+		input:  input,
+		stream: stream,
 	}
 	return nil
 }
