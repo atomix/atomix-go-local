@@ -90,7 +90,7 @@ func (c *localContext) OperationType() service.OperationType {
 type testRequest struct {
 	op     service.OperationType
 	input  []byte
-	stream stream.Stream
+	stream stream.WriteStream
 }
 
 type localClient struct {
@@ -133,7 +133,7 @@ func (c *localClient) processRequests() {
 	}
 }
 
-func (c *localClient) Write(ctx context.Context, input []byte, stream stream.Stream) error {
+func (c *localClient) Write(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- testRequest{
 		op:     service.OpTypeCommand,
 		input:  input,
@@ -142,7 +142,7 @@ func (c *localClient) Write(ctx context.Context, input []byte, stream stream.Str
 	return nil
 }
 
-func (c *localClient) Read(ctx context.Context, input []byte, stream stream.Stream) error {
+func (c *localClient) Read(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- testRequest{
 		op:     service.OpTypeQuery,
 		input:  input,
