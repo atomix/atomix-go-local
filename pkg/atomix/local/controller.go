@@ -17,9 +17,9 @@ package local
 import (
 	"context"
 	"fmt"
-	"github.com/atomix/atomix-api/proto/atomix/controller"
-	"github.com/atomix/atomix-go-node/pkg/atomix"
-	"github.com/atomix/atomix-go-node/pkg/atomix/node"
+	"github.com/atomix/api/proto/atomix/controller"
+	"github.com/atomix/go-replica/pkg/atomix"
+	"github.com/atomix/go-replica/pkg/atomix/node"
 	"google.golang.org/grpc"
 	"net"
 	"sync"
