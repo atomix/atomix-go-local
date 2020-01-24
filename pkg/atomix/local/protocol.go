@@ -17,11 +17,11 @@ package local
 import (
 	"context"
 	"github.com/atomix/api/proto/atomix/controller"
-	"github.com/atomix/go-replica/pkg/atomix"
-	"github.com/atomix/go-replica/pkg/atomix/cluster"
-	"github.com/atomix/go-replica/pkg/atomix/node"
-	"github.com/atomix/go-replica/pkg/atomix/service"
-	"github.com/atomix/go-replica/pkg/atomix/stream"
+	"github.com/atomix/go-framework/pkg/atomix"
+	"github.com/atomix/go-framework/pkg/atomix/cluster"
+	"github.com/atomix/go-framework/pkg/atomix/node"
+	"github.com/atomix/go-framework/pkg/atomix/service"
+	"github.com/atomix/go-framework/pkg/atomix/stream"
 	"net"
 	"time"
 )
