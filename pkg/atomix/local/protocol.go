@@ -27,41 +27,55 @@ import (
 )
 
 // NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener, registry *node.Registry) *atomix.Node {
-	return atomix.NewNode("local", &controller.PartitionConfig{}, NewProtocol(), registry, atomix.WithLocal(lis))
+func NewNode(lis net.Listener, registry *node.Registry, partitions []*controller.PartitionId) *atomix.Node {
+	return atomix.NewNode("local", &controller.ClusterConfig{}, NewProtocol(registry, partitions), registry, atomix.WithLocal(lis))
 }
 
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol() node.Protocol {
-	return &Protocol{}
+func NewProtocol(registry *node.Registry, partitions []*controller.PartitionId) node.Protocol {
+	clients := make(map[int]*localClient)
+	for _, partitionID := range partitions {
+		context := &localContext{}
+		stateMachine := node.NewPrimitiveStateMachine(registry, context)
+		clients[int(partitionID.Partition)] = &localClient{
+			stateMachine: stateMachine,
+			context:      context,
+			ch:           make(chan testRequest),
+		}
+	}
+	return &Protocol{
+		partitions: clients,
+	}
 }
 
 // Protocol implements the Atomix protocol in process
 type Protocol struct {
-	node.Protocol
-	stateMachine node.StateMachine
-	client       *localClient
-	context      *localContext
+	partitions map[int]*localClient
 }
 
 func (p *Protocol) Start(cluster cluster.Cluster, registry *node.Registry) error {
-	p.context = &localContext{}
-	p.stateMachine = node.NewPrimitiveStateMachine(registry, p.context)
-	p.client = &localClient{
-		stateMachine: p.stateMachine,
-		context:      p.context,
-		ch:           make(chan testRequest),
+	for _, partition := range p.partitions {
+		partition.start()
 	}
-	p.client.start()
 	return nil
 }
 
-func (p *Protocol) Client() node.Client {
-	return p.client
+func (p *Protocol) Partition(partitionID int) node.Partition {
+	return p.partitions[partitionID]
+}
+
+func (p *Protocol) Partitions() []node.Partition {
+	partitions := make([]node.Partition, 0, len(p.partitions))
+	for _, partition := range p.partitions {
+		partitions = append(partitions, partition)
+	}
+	return partitions
 }
 
 func (p *Protocol) Stop() error {
-	p.client.stop()
+	for _, partition := range p.partitions {
+		partition.stop()
+	}
 	return nil
 }
 
