@@ -3,6 +3,7 @@ module github.com/atomix/go-local
 go 1.12
 
 require (
-	github.com/atomix/api v0.0.0-20200206050905-3494e48c0084
-	github.com/atomix/go-framework v0.0.0-20200206051037-7d9990b73da9
+	github.com/atomix/api v0.0.0-20200206211058-f075fb5b6d1b
+	github.com/atomix/go-framework v0.0.0-20200206211522-7019b65dabc0
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
 )
