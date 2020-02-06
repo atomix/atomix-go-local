@@ -81,6 +81,8 @@ github.com/atomix/go-framework v0.0.0-20200206051037-7d9990b73da9/go.mod h1:Id2o
 github.com/atomix/go-framework v0.0.0-20200206051223-9d6a0993cce6/go.mod h1:qkjYKkRmSJw5gE8bOfDsSlqas6pLGHyHsRDAvm6MXMQ=
 github.com/atomix/go-framework v0.0.0-20200206211522-7019b65dabc0 h1:lgGAuB/0pq6wi2QaM36dgLswycq/IrlL71D+q5c+uec=
 github.com/atomix/go-framework v0.0.0-20200206211522-7019b65dabc0/go.mod h1:Q/0VngSkhuTvHc9W2/k3HCgMcSkI9UaxUgRPWjO5lJI=
+github.com/atomix/go-framework v0.0.0-20200206221034-8c7583e55420 h1:+DAkriIF4oDJEl4HT0LBv35xLQ0kMnDoHk2ooa6KAyI=
+github.com/atomix/go-framework v0.0.0-20200206221034-8c7583e55420/go.mod h1:Q/0VngSkhuTvHc9W2/k3HCgMcSkI9UaxUgRPWjO5lJI=
 github.com/atomix/go-local v0.0.0-20200124003802-357f6682b2f4/go.mod h1:MabPkX/j2bN399GVAYGigyvDaAslu7omZoujEfzdKDg=
 github.com/atomix/go-local v0.0.0-20200202105028-743d224c66eb/go.mod h1:r+i7K/PMo9+0J0vQM7f7gjSsr8uZj6iiqkc8xLOIR/U=
 github.com/atomix/go-local v0.0.0-20200206051159-e57333bb7aab/go.mod h1:HjrFb/fmsvpa1NweW8VBvapv6/Ih9K6RboocUJ0JtD0=
