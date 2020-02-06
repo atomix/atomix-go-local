@@ -36,11 +36,11 @@ func NewProtocol(registry *node.Registry, partitions []*controller.PartitionId) 
 	clients := make(map[int]*localClient)
 	for _, partitionID := range partitions {
 		context := &localContext{}
-		stateMachine := node.NewPrimitiveStateMachine(registry, context)
+		stateMachine := service.NewManager(registry, context)
 		clients[int(partitionID.Partition)] = &localClient{
 			stateMachine: stateMachine,
 			context:      context,
-			ch:           make(chan testRequest),
+			ch:           make(chan localRequest),
 		}
 	}
 	return &Protocol{
@@ -82,7 +82,6 @@ func (p *Protocol) Stop() error {
 type localContext struct {
 	index     uint64
 	timestamp time.Time
-	operation service.OperationType
 }
 
 func (c *localContext) Node() string {
@@ -97,12 +96,15 @@ func (c *localContext) Timestamp() time.Time {
 	return c.timestamp
 }
 
-func (c *localContext) OperationType() service.OperationType {
-	return c.operation
-}
+type operationType string
 
-type testRequest struct {
-	op     service.OperationType
+const (
+	command operationType = "command"
+	query   operationType = "query"
+)
+
+type localRequest struct {
+	op     operationType
 	input  []byte
 	stream stream.WriteStream
 }
@@ -110,7 +112,7 @@ type testRequest struct {
 type localClient struct {
 	stateMachine node.StateMachine
 	context      *localContext
-	ch           chan testRequest
+	ch           chan localRequest
 }
 
 func (c *localClient) MustLeader() bool {
@@ -135,21 +137,19 @@ func (c *localClient) stop() {
 
 func (c *localClient) processRequests() {
 	for request := range c.ch {
-		if request.op == service.OpTypeCommand {
+		if request.op == command {
 			c.context.index++
 			c.context.timestamp = time.Now()
-			c.context.operation = service.OpTypeCommand
 			c.stateMachine.Command(request.input, request.stream)
 		} else {
-			c.context.operation = service.OpTypeQuery
 			c.stateMachine.Query(request.input, request.stream)
 		}
 	}
 }
 
 func (c *localClient) Write(ctx context.Context, input []byte, stream stream.WriteStream) error {
-	c.ch <- testRequest{
-		op:     service.OpTypeCommand,
+	c.ch <- localRequest{
+		op:     command,
 		input:  input,
 		stream: stream,
 	}
@@ -157,8 +157,8 @@ func (c *localClient) Write(ctx context.Context, input []byte, stream stream.Wri
 }
 
 func (c *localClient) Read(ctx context.Context, input []byte, stream stream.WriteStream) error {
-	c.ch <- testRequest{
-		op:     service.OpTypeQuery,
+	c.ch <- localRequest{
+		op:     query,
 		input:  input,
 		stream: stream,
 	}
