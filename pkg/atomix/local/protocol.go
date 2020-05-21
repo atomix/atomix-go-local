@@ -16,7 +16,7 @@ package local
 
 import (
 	"context"
-	"github.com/atomix/api/proto/atomix/controller"
+	"github.com/atomix/api/proto/atomix/database"
 	"github.com/atomix/go-framework/pkg/atomix"
 	"github.com/atomix/go-framework/pkg/atomix/cluster"
 	"github.com/atomix/go-framework/pkg/atomix/node"
@@ -27,12 +27,12 @@ import (
 )
 
 // NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener, registry *node.Registry, partitions []*controller.PartitionId) *atomix.Node {
-	return atomix.NewNode("local", &controller.ClusterConfig{}, NewProtocol(registry, partitions), registry, atomix.WithLocal(lis))
+func NewNode(lis net.Listener, registry *node.Registry, partitions []database.PartitionId) *atomix.Node {
+	return atomix.NewNode("local", &database.DatabaseConfig{}, NewProtocol(registry, partitions), registry, atomix.WithLocal(lis))
 }
 
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol(registry *node.Registry, partitions []*controller.PartitionId) node.Protocol {
+func NewProtocol(registry *node.Registry, partitions []database.PartitionId) node.Protocol {
 	clients := make(map[int]*localClient)
 	for _, partitionID := range partitions {
 		context := &localContext{}
