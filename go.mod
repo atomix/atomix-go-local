@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/atomix/api v0.2.0
-	github.com/atomix/go-framework v0.2.0
+	github.com/atomix/go-framework v0.3.0
 	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect

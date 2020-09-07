@@ -19,76 +19,82 @@ import (
 	"github.com/atomix/api/proto/atomix/database"
 	"github.com/atomix/go-framework/pkg/atomix"
 	"github.com/atomix/go-framework/pkg/atomix/cluster"
-	"github.com/atomix/go-framework/pkg/atomix/node"
-	"github.com/atomix/go-framework/pkg/atomix/service"
+	"github.com/atomix/go-framework/pkg/atomix/primitive"
 	"github.com/atomix/go-framework/pkg/atomix/stream"
 	"net"
 	"time"
 )
 
 // NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener, registry *node.Registry, partitions []database.PartitionId) *atomix.Node {
-	return atomix.NewNode("local", &database.DatabaseConfig{}, NewProtocol(registry, partitions), registry, atomix.WithLocal(lis))
+func NewNode(lis net.Listener, partitions []primitive.PartitionID) *atomix.Node {
+	return atomix.NewNode("local", &database.DatabaseConfig{}, NewProtocol(partitions), atomix.WithLocal(lis))
 }
 
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol(registry *node.Registry, partitions []database.PartitionId) node.Protocol {
-	clients := make(map[int]*localClient)
-	for _, partitionID := range partitions {
-		context := &localContext{}
-		stateMachine := service.NewManager(registry, context)
-		clients[int(partitionID.Partition)] = &localClient{
-			stateMachine: stateMachine,
-			context:      context,
-			ch:           make(chan localRequest),
-		}
-	}
+func NewProtocol(partitions []primitive.PartitionID) primitive.Protocol {
 	return &Protocol{
-		partitions: clients,
+		partitions: partitions,
 	}
 }
 
 // Protocol implements the Atomix protocol in process
 type Protocol struct {
-	partitions map[int]*localClient
+	partitions []primitive.PartitionID
+	clients    map[primitive.PartitionID]*localClient
 }
 
-func (p *Protocol) Start(cluster cluster.Cluster, registry *node.Registry) error {
-	for _, partition := range p.partitions {
-		partition.start()
+func (p *Protocol) Start(cluster cluster.Cluster, registry primitive.Registry) error {
+	clients := make(map[primitive.PartitionID]*localClient)
+	for _, partitionID := range p.partitions {
+		context := &localContext{
+			partition: partitionID,
+		}
+		client := &localClient{
+			state:   primitive.NewManager(registry, context),
+			context: context,
+			ch:      make(chan localRequest),
+		}
+		client.start()
+		clients[partitionID] = client
 	}
+	p.clients = clients
 	return nil
 }
 
-func (p *Protocol) Partition(partitionID int) node.Partition {
-	return p.partitions[partitionID]
+func (p *Protocol) Partition(partitionID primitive.PartitionID) primitive.Partition {
+	return p.clients[partitionID]
 }
 
-func (p *Protocol) Partitions() []node.Partition {
-	partitions := make([]node.Partition, 0, len(p.partitions))
-	for _, partition := range p.partitions {
+func (p *Protocol) Partitions() []primitive.Partition {
+	partitions := make([]primitive.Partition, 0, len(p.clients))
+	for _, partition := range p.clients {
 		partitions = append(partitions, partition)
 	}
 	return partitions
 }
 
 func (p *Protocol) Stop() error {
-	for _, partition := range p.partitions {
+	for _, partition := range p.clients {
 		partition.stop()
 	}
 	return nil
 }
 
 type localContext struct {
-	index     uint64
+	partition primitive.PartitionID
+	index     primitive.Index
 	timestamp time.Time
 }
 
-func (c *localContext) Node() string {
+func (c *localContext) NodeID() string {
 	return "local"
 }
 
-func (c *localContext) Index() uint64 {
+func (c *localContext) PartitionID() primitive.PartitionID {
+	return c.partition
+}
+
+func (c *localContext) Index() primitive.Index {
 	return c.index
 }
 
@@ -110,9 +116,9 @@ type localRequest struct {
 }
 
 type localClient struct {
-	stateMachine node.StateMachine
-	context      *localContext
-	ch           chan localRequest
+	state   *primitive.Manager
+	context *localContext
+	ch      chan localRequest
 }
 
 func (c *localClient) MustLeader() bool {
@@ -140,9 +146,9 @@ func (c *localClient) processRequests() {
 		if request.op == command {
 			c.context.index++
 			c.context.timestamp = time.Now()
-			c.stateMachine.Command(request.input, request.stream)
+			c.state.Command(request.input, request.stream)
 		} else {
-			c.stateMachine.Query(request.input, request.stream)
+			c.state.Query(request.input, request.stream)
 		}
 	}
 }
