@@ -3,8 +3,8 @@ module github.com/atomix/go-local
 go 1.13
 
 require (
-	github.com/atomix/api v0.3.1
-	github.com/atomix/go-framework v0.4.0
+	github.com/atomix/api v0.3.3
+	github.com/atomix/go-framework v0.5.0
 	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
