@@ -16,41 +16,31 @@ package local
 
 import (
 	"context"
-	"github.com/atomix/api/proto/atomix/database"
-	"github.com/atomix/go-framework/pkg/atomix"
 	"github.com/atomix/go-framework/pkg/atomix/cluster"
-	"github.com/atomix/go-framework/pkg/atomix/primitive"
+	"github.com/atomix/go-framework/pkg/atomix/protocol/rsm"
 	"github.com/atomix/go-framework/pkg/atomix/stream"
-	"net"
 	"time"
 )
 
-// NewNode returns a new Atomix Node with a local protocol implementation
-func NewNode(lis net.Listener, partitions []primitive.PartitionID) *atomix.Node {
-	return atomix.NewNode("local", &database.DatabaseConfig{}, NewProtocol(partitions), atomix.WithLocal(lis))
-}
-
 // NewProtocol returns an Atomix Protocol instance
-func NewProtocol(partitions []primitive.PartitionID) primitive.Protocol {
-	return &Protocol{
-		partitions: partitions,
-	}
+func NewProtocol() rsm.Protocol {
+	return &Protocol{}
 }
 
 // Protocol implements the Atomix protocol in process
 type Protocol struct {
-	partitions []primitive.PartitionID
-	clients    map[primitive.PartitionID]*localClient
+	clients map[rsm.PartitionID]*localClient
 }
 
-func (p *Protocol) Start(cluster cluster.Cluster, registry primitive.Registry) error {
-	clients := make(map[primitive.PartitionID]*localClient)
-	for _, partitionID := range p.partitions {
+func (p *Protocol) Start(cluster *cluster.Cluster, registry rsm.Registry) error {
+	clients := make(map[rsm.PartitionID]*localClient)
+	for id := range cluster.Partitions() {
+		partitionID := rsm.PartitionID(id)
 		context := &localContext{
 			partition: partitionID,
 		}
 		client := &localClient{
-			state:   primitive.NewManager(registry, context),
+			state:   rsm.NewManager(cluster, registry, context),
 			context: context,
 			ch:      make(chan localRequest),
 		}
@@ -61,12 +51,12 @@ func (p *Protocol) Start(cluster cluster.Cluster, registry primitive.Registry) e
 	return nil
 }
 
-func (p *Protocol) Partition(partitionID primitive.PartitionID) primitive.Partition {
+func (p *Protocol) Partition(partitionID rsm.PartitionID) rsm.Partition {
 	return p.clients[partitionID]
 }
 
-func (p *Protocol) Partitions() []primitive.Partition {
-	partitions := make([]primitive.Partition, 0, len(p.clients))
+func (p *Protocol) Partitions() []rsm.Partition {
+	partitions := make([]rsm.Partition, 0, len(p.clients))
 	for _, partition := range p.clients {
 		partitions = append(partitions, partition)
 	}
@@ -81,8 +71,8 @@ func (p *Protocol) Stop() error {
 }
 
 type localContext struct {
-	partition primitive.PartitionID
-	index     primitive.Index
+	partition rsm.PartitionID
+	index     rsm.Index
 	timestamp time.Time
 }
 
@@ -90,11 +80,11 @@ func (c *localContext) NodeID() string {
 	return "local"
 }
 
-func (c *localContext) PartitionID() primitive.PartitionID {
+func (c *localContext) PartitionID() rsm.PartitionID {
 	return c.partition
 }
 
-func (c *localContext) Index() primitive.Index {
+func (c *localContext) Index() rsm.Index {
 	return c.index
 }
 
@@ -116,7 +106,7 @@ type localRequest struct {
 }
 
 type localClient struct {
-	state   *primitive.Manager
+	state   *rsm.Manager
 	context *localContext
 	ch      chan localRequest
 }
@@ -153,7 +143,7 @@ func (c *localClient) processRequests() {
 	}
 }
 
-func (c *localClient) Write(ctx context.Context, input []byte, stream stream.WriteStream) error {
+func (c *localClient) ExecuteCommand(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- localRequest{
 		op:     command,
 		input:  input,
@@ -162,7 +152,7 @@ func (c *localClient) Write(ctx context.Context, input []byte, stream stream.Wri
 	return nil
 }
 
-func (c *localClient) Read(ctx context.Context, input []byte, stream stream.WriteStream) error {
+func (c *localClient) ExecuteQuery(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- localRequest{
 		op:     query,
 		input:  input,
