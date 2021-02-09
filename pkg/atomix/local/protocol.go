@@ -32,7 +32,7 @@ type Protocol struct {
 	clients map[rsm.PartitionID]*localClient
 }
 
-func (p *Protocol) Start(cluster *cluster.Cluster, registry rsm.Registry) error {
+func (p *Protocol) Start(cluster cluster.Cluster, registry *rsm.Registry) error {
 	clients := make(map[rsm.PartitionID]*localClient)
 	for id := range cluster.Partitions() {
 		partitionID := rsm.PartitionID(id)
