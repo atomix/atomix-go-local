@@ -16,9 +16,9 @@ package local
 
 import (
 	"context"
-	"github.com/atomix/go-framework/pkg/atomix/cluster"
-	"github.com/atomix/go-framework/pkg/atomix/protocol/rsm"
-	"github.com/atomix/go-framework/pkg/atomix/stream"
+	"github.com/atomix/atomix-go-framework/pkg/atomix/cluster"
+	"github.com/atomix/atomix-go-framework/pkg/atomix/storage/protocol/rsm"
+	"github.com/atomix/atomix-go-framework/pkg/atomix/stream"
 	"time"
 )
 
