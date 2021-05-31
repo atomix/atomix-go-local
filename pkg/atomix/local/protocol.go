@@ -34,8 +34,8 @@ type Protocol struct {
 
 func (p *Protocol) Start(cluster cluster.Cluster, registry *rsm.Registry) error {
 	clients := make(map[rsm.PartitionID]*localClient)
-	for id := range cluster.Partitions() {
-		partitionID := rsm.PartitionID(id)
+	for _, partition := range cluster.Partitions() {
+		partitionID := rsm.PartitionID(partition.ID())
 		context := &localContext{
 			partition: partitionID,
 		}
