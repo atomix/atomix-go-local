@@ -35,17 +35,12 @@ type Protocol struct {
 func (p *Protocol) Start(cluster cluster.Cluster, registry *rsm.Registry) error {
 	clients := make(map[rsm.PartitionID]*localClient)
 	for _, partition := range cluster.Partitions() {
-		partitionID := rsm.PartitionID(partition.ID())
-		context := &localContext{
-			partition: partitionID,
-		}
 		client := &localClient{
-			state:   rsm.NewManager(cluster, registry, context),
-			context: context,
-			ch:      make(chan localRequest),
+			state: rsm.NewManager(cluster, registry),
+			ch:    make(chan localRequest),
 		}
 		client.start()
-		clients[partitionID] = client
+		clients[rsm.PartitionID(partition.ID())] = client
 	}
 	p.clients = clients
 	return nil
@@ -106,9 +101,8 @@ type localRequest struct {
 }
 
 type localClient struct {
-	state   *rsm.Manager
-	context *localContext
-	ch      chan localRequest
+	state *rsm.Manager
+	ch    chan localRequest
 }
 
 func (c *localClient) MustLeader() bool {
@@ -134,8 +128,6 @@ func (c *localClient) stop() {
 func (c *localClient) processRequests() {
 	for request := range c.ch {
 		if request.op == command {
-			c.context.index++
-			c.context.timestamp = time.Now()
 			c.state.Command(request.input, request.stream)
 		} else {
 			c.state.Query(request.input, request.stream)
