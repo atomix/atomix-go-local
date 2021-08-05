@@ -16,10 +16,10 @@ package local
 
 import (
 	"context"
+	"fmt"
 	"github.com/atomix/atomix-go-framework/pkg/atomix/cluster"
 	"github.com/atomix/atomix-go-framework/pkg/atomix/storage/protocol/rsm"
 	"github.com/atomix/atomix-go-framework/pkg/atomix/stream"
-	"time"
 )
 
 // NewProtocol returns an Atomix Protocol instance
@@ -33,11 +33,13 @@ type Protocol struct {
 }
 
 func (p *Protocol) Start(cluster cluster.Cluster, registry *rsm.Registry) error {
+	member, _ := cluster.Member()
 	clients := make(map[rsm.PartitionID]*localClient)
 	for _, partition := range cluster.Partitions() {
 		client := &localClient{
-			state: rsm.NewManager(cluster, registry),
-			ch:    make(chan localRequest),
+			member: member,
+			state:  rsm.NewStateMachine(registry),
+			ch:     make(chan localRequest),
 		}
 		client.start()
 		clients[rsm.PartitionID(partition.ID())] = client
@@ -65,28 +67,6 @@ func (p *Protocol) Stop() error {
 	return nil
 }
 
-type localContext struct {
-	partition rsm.PartitionID
-	index     rsm.Index
-	timestamp time.Time
-}
-
-func (c *localContext) NodeID() string {
-	return "local"
-}
-
-func (c *localContext) PartitionID() rsm.PartitionID {
-	return c.partition
-}
-
-func (c *localContext) Index() rsm.Index {
-	return c.index
-}
-
-func (c *localContext) Timestamp() time.Time {
-	return c.timestamp
-}
-
 type operationType string
 
 const (
@@ -101,8 +81,9 @@ type localRequest struct {
 }
 
 type localClient struct {
-	state *rsm.Manager
-	ch    chan localRequest
+	member *cluster.Member
+	state  rsm.StateMachine
+	ch     chan localRequest
 }
 
 func (c *localClient) MustLeader() bool {
@@ -115,6 +96,19 @@ func (c *localClient) IsLeader() bool {
 
 func (c *localClient) Leader() string {
 	return ""
+}
+
+func (c *localClient) Followers() []string {
+	return nil
+}
+
+func (c *localClient) WatchConfig(ctx context.Context, ch chan<- rsm.PartitionConfig) error {
+	go func() {
+		ch <- rsm.PartitionConfig{
+			Leader: fmt.Sprintf("%s:%d", c.member.Host, c.member.Port),
+		}
+	}()
+	return nil
 }
 
 func (c *localClient) start() {
@@ -135,7 +129,7 @@ func (c *localClient) processRequests() {
 	}
 }
 
-func (c *localClient) ExecuteCommand(ctx context.Context, input []byte, stream stream.WriteStream) error {
+func (c *localClient) SyncCommand(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- localRequest{
 		op:     command,
 		input:  input,
@@ -144,7 +138,16 @@ func (c *localClient) ExecuteCommand(ctx context.Context, input []byte, stream s
 	return nil
 }
 
-func (c *localClient) ExecuteQuery(ctx context.Context, input []byte, stream stream.WriteStream) error {
+func (c *localClient) SyncQuery(ctx context.Context, input []byte, stream stream.WriteStream) error {
+	c.ch <- localRequest{
+		op:     query,
+		input:  input,
+		stream: stream,
+	}
+	return nil
+}
+
+func (c *localClient) StaleQuery(ctx context.Context, input []byte, stream stream.WriteStream) error {
 	c.ch <- localRequest{
 		op:     query,
 		input:  input,
